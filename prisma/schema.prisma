@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Game {
+  id          Int      @id @default(autoincrement())
+  steamId     Int      @default(0)
+  name        String   @unique
+  picture     String   @default("")
+  link        String   @default("")
+  description String   @default("")
+  website     String   @default("")
+  dev         String[] @default([""])
+  price       Json     @default("{ \"final\": \"n/a\" }")
+  categories  Json     @default("{}")
+
+  votes Vote[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Vote {
+  id       Int    @id @default(autoincrement())
+  fromId   Int
+  from     User   @relation(fields: [fromId], references: [id])
+  gameName String
+  for      Game   @relation(fields: [gameName], references: [name])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id     Int     @unique
+  name   String
+  sub    Boolean @default(false)
+  streak Int     @default(0)
+  votes  Vote[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
