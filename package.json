@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "bun index.ts"
+    "start": "bun app/index.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.0",
