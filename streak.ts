@@ -6,7 +6,7 @@ import { getDateRange } from "./app/lib";
 // we run at the range cutoff time a streak function going over all users that are on a streak and check if they voted for that period
 const calcStreak = async () => {
   // this would run at range edge - 10min or so
-  const range = getDateRange({ startDay: 0, time: "12:00", intervalDays: 7 });
+  const range = getDateRange();
   const usersToCheck = await prisma.user.findMany({
     where: {
       streak: {

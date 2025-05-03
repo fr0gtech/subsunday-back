@@ -6,40 +6,54 @@ import {
   setMinutes,
   setHours,
   subDays,
+  getDay,
+  isSaturday,
+  previousDay,
 } from "date-fns";
 import { parse } from "node-html-parser";
 import Fuse from 'fuse.js'
 import { games } from ".";
 import { prisma } from "./prisma";
-
-type DateRangeOptions = {
-  intervalDays: number;
-  time: string;
-  startDay: Day; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-};
+import { TZDate, tz } from "@date-fns/tz";
 
 type SteamGame = {
   appid: number;
   name: string;
 };
 
-export function getDateRange({
-  intervalDays,
-  time,
-  startDay,
-}: DateRangeOptions) {
-  const [hour, minute] = time.split(":").map(Number);
+type DateRangeOptions = {
+  _fromDay?: Day;
+  _fromTime?: string;
+  _toDay?: Day;
+  _toTime?: string; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+};
 
-  const now = new Date();
-  const nextStartDay = nextDay(now, startDay);
-  const endDate = setMilliseconds(
-    setSeconds(setMinutes(setHours(nextStartDay, hour), minute), 0),
+export function getDateRange(options?: DateRangeOptions) {
+  const { _fromDay, _fromTime, _toDay, _toTime } = options || {};
+  // if we dont get any paras check env
+  const fromDay = (_fromDay || process.env.FROM_DAY) as Day
+  const fromTime = (_fromTime || process.env.FROM_TIME) as string
+  const toDay = (_toDay || process.env.TO_DAY) as Day
+  const toTime = (_toTime || process.env.TO_TIME) as string
+
+  const now = new TZDate(new Date(), 'America/New_York');
+  const [fromHour, fromMinute] = fromTime.split(':').map(Number);
+  
+  const periodStart = getDay(now) === fromDay ? now : previousDay(now, fromDay, { in: tz('America/New_York') });
+
+  const startDate = setMilliseconds(
+    setSeconds(setMinutes(setHours  (periodStart, fromHour), fromMinute), 0),
     0,
   );
-  const startDate = subDays(endDate, intervalDays);
-
+  const [toHour, toMinute] = toTime.split(':').map(Number);
+  const periodEndDate = isSaturday(now) ? now : nextDay(now, toDay, { in: tz('America/New_York') });
+  const endDate = setMilliseconds(
+    setSeconds(setMinutes(setHours(periodEndDate, toHour), toMinute), 0),
+    0,
+  );
   return { startDate, endDate };
 }
+
 export const getGameOnDb = async(gameMsg) =>{
   return await prisma.game.findFirst({
     where:{
@@ -47,7 +61,7 @@ export const getGameOnDb = async(gameMsg) =>{
     }
   })
 }
-export const createGameOnDb = async (match, gameMsg) =>{
+export const createGameOnDb = async (match: { name: string; appId: number | null; }, gameMsg: string) =>{
   if (!match.appId) {
     return prisma.game.upsert({
       where: {
@@ -68,12 +82,9 @@ export const createGameOnDb = async (match, gameMsg) =>{
   } else {
     const steamAppDetails = await getInfobyId(match.appId)
     const moreInfo = steamAppDetails[match.appId].data;
-    if (!moreInfo){
-      console.log(match);
-      console.log(steamAppDetails);
-      console.log(moreInfo);
-      
-      throw new Error("more info undefined")
+    if (!moreInfo || !steamAppDetails[match.appId].success){
+      // if we get a game like lol that is on steam game list but we cant get detail page just call itself with no appid
+      return createGameOnDb({ appId: null, name: match.name }, gameMsg)
     }
     
     return await prisma.game.upsert({
@@ -129,7 +140,7 @@ export async function findClosestSteamGame(userInput) {
   });
 
   const result = fuse.search(userInput);
-
+  
   if (result.length > 0) {
     const { item } = result[0];
     return {

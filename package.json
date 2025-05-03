@@ -3,6 +3,7 @@
     "start": "bun app/index.ts"
   },
   "dependencies": {
+    "@date-fns/tz": "^1.2.0",
     "@neondatabase/serverless": "^1.0.0",
     "@prisma/client": "^6.6.0",
     "date-fns": "^4.1.0",

@@ -119,6 +119,6 @@ export function generateRandomRewardMsg() {
   const rewardMessages = Array.from({ length: 100 }, generateRandomRewardMsg);
   for (const e of rewardMessages) {
     await onMessage(e.msg, e.userstate);
-    await delay(500); // optional delay
+    await delay(100); // optional delay
   }
 })();

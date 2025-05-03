@@ -1,9 +1,12 @@
 import "dotenv/config";
 import { prisma } from "./prisma";
-import { canUserVote, checkENV, createGameOnDb, findClosestSteamGame, getDateRange, getGameOnDb, getSteamGames } from "./lib";
+import { canUserVote, checkENV, createGameOnDb, delay, findClosestSteamGame, getDateRange, getGameOnDb, getSteamGames } from "./lib";
 import { initSocket, io } from "./socket";
 import { initTwitchIRC } from "./twitch";
 import { ChatUserstate } from "tmi.js";
+import { demoMsg } from "./data";
+import { TZDate } from "@date-fns/tz";
+import { isAfter, isBefore } from "date-fns";
 
 const CHANNEL = process.env.TWITCH_CHANNEL_NAME;
 
@@ -51,7 +54,14 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
   });
 
   // check if user can vote
-  const range = getDateRange({ intervalDays: 7, startDay: 0, time: "12:00" });
+  const range = getDateRange();
+  // check if we are out of period atm
+  const now = new TZDate(new Date(), 'America/New_York');
+  const isAfterEnd = isBefore(now, range.startDate)
+  if (isAfterEnd){
+    console.log(`[SUB] ${user.name} cannot vote out of range, game: ${gameMsg}`);
+    return;
+  }
   const userCanVote = await canUserVote(user.id, range);
   if (!userCanVote) {
     console.log(`[SUB] ${user.name} cannot vote, game: ${gameMsg}`);
@@ -65,7 +75,6 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
   if (!gameOnDb) {
     // match game to a steam game
     const match = await findClosestSteamGame(gameMsg)
-
     // overwriet gameondb if null with new game data
     gameOnDb = await createGameOnDb(match, gameMsg)
   }
@@ -85,7 +94,7 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
       },
     },
   });
-
+  if (!gameOnDb) throw new Error("no game")
   // also send ws messages to every room
   io.to("main")
     .to("game-" + gameOnDb.id)
@@ -99,16 +108,14 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
     });
 }
 
-
-
-
-
 // // FOR DEVING IGNORE THIS
 (async () => {
-     setInterval(() => {
-         io.to("main").emit("vote", {for: {name: "Sea of Stars", id: 123}, from: {name: "gaggi", id: 123}})
-         console.log("send msg");
-     }, 1000);
+
+
+    //  setInterval(() => {
+    //      io.to("main").emit("vote", {for: {name: "Sea of Stars", id: 123}, from: {name: "gaggi", id: 123}})
+    //      console.log("send msg");
+    //  }, 1000);
 
 // setInterval(async()=>{
 //     const randomId = demoMsg.sub.userstate
@@ -116,6 +123,6 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
 //     await onMessage("!vote Throne of Darkness", randomId)
 //     await delay(300);
 // }, 5000)
-// 
+
 
 })()
