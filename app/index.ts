@@ -10,6 +10,8 @@ import { isAfter, isBefore } from "date-fns";
 
 const CHANNEL = process.env.TWITCH_CHANNEL_NAME;
 
+console.log(process.env.SOCKET_ORIGIN);
+
 // first check if we got a channel to listen to
 checkENV(CHANNEL)
 
