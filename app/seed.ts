@@ -1,7 +1,5 @@
-import { onMessage } from "./app";
-import { delay } from "./app/lib";
-
-
+import { onMessage } from ".";
+import { delay } from "./lib";
 
 const games = [
   "World of Goo 2",
