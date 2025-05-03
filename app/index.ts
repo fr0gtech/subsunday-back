@@ -1,26 +1,32 @@
 import "dotenv/config";
 import { prisma } from "./prisma";
-import { canUserVote, checkENV, createGameOnDb, delay, findClosestSteamGame, getDateRange, getGameOnDb, getSteamGames } from "./lib";
+import { canUserVote, checkENV, createGameOnDb, delay, findClosestSteamGame, getDateRange, getGameOnDb, getSteamGames, SteamGame } from "./lib";
 import { initSocket, io } from "./socket";
 import { initTwitchIRC } from "./twitch";
 import { ChatUserstate } from "tmi.js";
-import { demoMsg } from "./data";
+import { demoMsg, usernames } from "./data";
 import { TZDate } from "@date-fns/tz";
 import { isAfter, isBefore } from "date-fns";
 
+export let games: SteamGame[];
 const CHANNEL = process.env.TWITCH_CHANNEL_NAME;
 
 console.log(process.env.SOCKET_ORIGIN);
+await init()
 
+
+async function init(){
+   checkENV(CHANNEL as string)
+   //   we get all steam games on start this may be bad? also wtf is that api
+   
+    games = await getSteamGames()
+    // runDev()
+   
+   // initialize socket.io
+   initSocket()
+   initTwitchIRC(CHANNEL)
+ }
 // first check if we got a channel to listen to
-checkENV(CHANNEL)
-
-// we get all steam games on start this may be bad? also wtf is that api
-export const games = await getSteamGames();
-
-// initialize socket.io
-initSocket()
-initTwitchIRC(CHANNEL)
 
 // this gets triggered on any message
 export async function onMessage(message: string, userstate: ChatUserstate) {
@@ -111,20 +117,18 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
 }
 
 // // FOR DEVING IGNORE THIS
-(async () => {
+function runDev(){
+  setInterval(async()=>{
+    const randomId = demoMsg.sub.userstate
+    randomId["user-id"] = (Math.ceil(Math.random() * 10000)).toString()
+    randomId.username = usernames[Math.floor(Math.random() * usernames.length)];
 
-
+    await onMessage("!vote Throne of Darkness", randomId)
+    await delay(300);
+  }, 5000)
+}
     //  setInterval(() => {
     //      io.to("main").emit("vote", {for: {name: "Sea of Stars", id: 123}, from: {name: "gaggi", id: 123}})
     //      console.log("send msg");
     //  }, 1000);
 
-// setInterval(async()=>{
-//     const randomId = demoMsg.sub.userstate
-//     randomId["user-id"] = (Math.ceil(Math.random() * 10000)).toString()
-//     await onMessage("!vote Throne of Darkness", randomId)
-//     await delay(300);
-// }, 5000)
-
-
-})()

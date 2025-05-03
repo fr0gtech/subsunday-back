@@ -16,7 +16,7 @@ import { games } from ".";
 import { prisma } from "./prisma";
 import { TZDate, tz } from "@date-fns/tz";
 
-type SteamGame = {
+export type SteamGame = {
   appid: number;
   name: string;
 };

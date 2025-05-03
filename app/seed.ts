@@ -1,4 +1,5 @@
 import { onMessage } from ".";
+import { usernames } from "./data";
 import { delay } from "./lib";
 
 const games = [
@@ -44,48 +45,7 @@ const games = [
   "It Takes Two",
 ];
 
-const usernames = [
-  "gamer123",
-  "speedrunner",
-  "zeldaFan99",
-  "proplayer",
-  "noobmaster",
-  "gamequeen",
-  "pixelhero",
-  "controllerking",
-  "streamgod",
-  "chatwarrior",
-  "frostbyte",
-  "pixelwizard",
-  "ninjachad",
-  "bossSlayer",
-  "darkmage",
-  "silentarrow",
-  "rocketron",
-  "hypernova",
-  "midnightowl",
-  "blitzkrieg",
-  "toxicbunny",
-  "grindmaster",
-  "luckyshot",
-  "soulcrusher",
-  "ghostgamer",
-  "couchpotato",
-  "tryhardtimmy",
-  "1hpclutch",
-  "headshotqueen",
-  "lagbeast",
-  "aimbotwannabe",
-  "criticalfail",
-  "ultimatenoob",
-  "afklegend",
-  "fastfingers",
-  "highpinghero",
-  "carryqueen",
-  "lobbyloser",
-  "victoryroyal",
-  "pressstart",
-];
+
 // add data while running
 
 export function generateRandomRewardMsg() {
