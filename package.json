@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "bun app/index.ts"
+    "start": "bun --env-file=.env.prod app/index.ts"
   },
   "dependencies": {
     "@date-fns/tz": "^1.2.0",
