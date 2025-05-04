@@ -19,7 +19,17 @@ const calcStreak = async () => {
   })
   const usersToCheck = await prisma.user.findMany({
     where: {
-      streak: {gte: 0}
+      AND:[
+        {
+          streak: {gte: 0}
+        },
+        {
+          votes:{
+            some: {}
+          }
+        }
+      ]
+      
     },
     include: {
       votes: {
