@@ -14,21 +14,14 @@ const CHANNEL = process.env.TWITCH_CHANNEL_NAME;
 console.log(process.env.SOCKET_ORIGIN);
 await init()
 
-
 async function init(){
    checkENV(CHANNEL as string)
-   //   we get all steam games on start this may be bad? also wtf is that api
-   
     games = await getSteamGames()
     // runDev()
-   
-   // initialize socket.io
    initSocket()
    initTwitchIRC(CHANNEL)
- }
-// first check if we got a channel to listen to
+}
 
-// this gets triggered on any message
 export async function onMessage(message: string, userstate: ChatUserstate) {
   if (message.trim().startsWith("!vote")) {
     if (userstate["custom-reward-id"] && !userstate.subscriber) {
@@ -65,12 +58,13 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
   const range = getDateRange();
   // check if we are out of period atm
   const now = new TZDate(new Date(), 'America/New_York');
-  const isAfterEnd = isAfter(now, range.endDate)
+  
+  const isAfterEnd = isAfter(now, range.currentPeriod.endDate)
   if (isAfterEnd){
     console.log(`[SUB] ${user.name} cannot vote out of range, game: ${gameMsg}`);
     return;
   }
-  const userCanVote = await canUserVote(user.id, range);
+  const userCanVote = await canUserVote(user.id, range.currentPeriod);
   if (!userCanVote) {
     console.log(`[SUB] ${user.name} cannot vote, game: ${gameMsg}`);
     return;
