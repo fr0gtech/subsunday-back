@@ -7,16 +7,7 @@ import { getDateRange } from "./app/lib";
 const calcStreak = async () => {
   // this would run at range edge - 10min or so
   const range = getDateRange();
-  await prisma.user.updateMany({
-    where:{
-      streak:{
-        gte: 1
-      }
-    },
-    data:{
-      streak:0
-    }
-  })
+ 
   const usersToCheck = await prisma.user.findMany({
     where: {
       AND:[
