@@ -9,9 +9,7 @@ const calcStreak = async () => {
   const range = getDateRange();
   const usersToCheck = await prisma.user.findMany({
     where: {
-      streak: {
-        gt: 0,
-      },
+      streak: {gte: 0}
     },
     include: {
       votes: {
@@ -22,10 +20,10 @@ const calcStreak = async () => {
       },
     },
   });
-
+  
   // loop over users that need to be checked
   for (const e of usersToCheck) {
-    await checkStreak(e, range);
+    await checkStreak(e, range.lastPeriod);
   }
 };
 
