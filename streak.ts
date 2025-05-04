@@ -51,8 +51,7 @@ const checkStreak = async (
   user: User & { votes: Vote[] },
   range: { startDate: any; endDate?: Date },
 ) => {
-  console.log(user);
-  return 
+
   const isOnStreak = isBefore(
     new Date(range.startDate),
     new Date(user.votes[0].createdAt),
