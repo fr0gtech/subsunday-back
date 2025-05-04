@@ -7,6 +7,16 @@ import { getDateRange } from "./app/lib";
 const calcStreak = async () => {
   // this would run at range edge - 10min or so
   const range = getDateRange();
+  await prisma.user.updateMany({
+    where:{
+      streak:{
+        gte: 1
+      }
+    },
+    data:{
+      streak:0
+    }
+  })
   const usersToCheck = await prisma.user.findMany({
     where: {
       streak: {gte: 0}
@@ -20,7 +30,7 @@ const calcStreak = async () => {
       },
     },
   });
-  
+
   // loop over users that need to be checked
   for (const e of usersToCheck) {
     await checkStreak(e, range.lastPeriod);
@@ -31,6 +41,8 @@ const checkStreak = async (
   user: User & { votes: Vote[] },
   range: { startDate: any; endDate?: Date },
 ) => {
+  console.log(user);
+  return 
   const isOnStreak = isBefore(
     new Date(range.startDate),
     new Date(user.votes[0].createdAt),
