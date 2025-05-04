@@ -65,7 +65,7 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
   const range = getDateRange();
   // check if we are out of period atm
   const now = new TZDate(new Date(), 'America/New_York');
-  const isAfterEnd = isBefore(now, range.startDate)
+  const isAfterEnd = isAfter(now, range.endDate)
   if (isAfterEnd){
     console.log(`[SUB] ${user.name} cannot vote out of range, game: ${gameMsg}`);
     return;
