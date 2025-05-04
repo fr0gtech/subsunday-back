@@ -7,12 +7,10 @@ import {
   setHours,
   subDays,
   getDay,
-  isSaturday,
   previousDay,
 } from "date-fns";
 import { parse } from "node-html-parser";
 import Fuse from 'fuse.js'
-import { games } from ".";
 import { prisma } from "./prisma";
 import { TZDate, tz } from "@date-fns/tz";
 
@@ -20,6 +18,7 @@ export type SteamGame = {
   appid: number;
   name: string;
 };
+export let games: SteamGame[];
 
 type DateRangeOptions = {
   _fromDay?: Day;
@@ -29,6 +28,9 @@ type DateRangeOptions = {
   offset?: Date;
 };
 
+export async function loadGames(){
+  games = await getSteamGames()
+}
 export function getDateRange(options?: DateRangeOptions) {
   const { _fromDay, _fromTime, _toDay, _toTime, offset } = options || {};
 

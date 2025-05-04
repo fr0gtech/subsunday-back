@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { prisma } from "./prisma";
-import { canUserVote, checkENV, createGameOnDb, delay, findClosestSteamGame, getDateRange, getGameOnDb, getSteamGames, SteamGame } from "./lib";
+import { canUserVote, checkENV, createGameOnDb, delay, findClosestSteamGame, getDateRange, getGameOnDb, getSteamGames, loadGames, SteamGame } from "./lib";
 import { initSocket, io } from "./socket";
 import { initTwitchIRC } from "./twitch";
 import { ChatUserstate } from "tmi.js";
@@ -8,7 +8,6 @@ import { demoMsg, usernames } from "./data";
 import { TZDate } from "@date-fns/tz";
 import { isAfter, isBefore } from "date-fns";
 
-export let games: SteamGame[];
 const CHANNEL = process.env.TWITCH_CHANNEL_NAME;
 
 console.log(process.env.SOCKET_ORIGIN);
@@ -16,7 +15,7 @@ await init()
 
 async function init(){
    checkENV(CHANNEL as string)
-    games = await getSteamGames()
+   loadGames()
     // runDev()
    initSocket()
    initTwitchIRC(CHANNEL)
