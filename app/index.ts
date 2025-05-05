@@ -40,6 +40,8 @@ export async function onMessage(message: string, userstate: ChatUserstate) {
 
 // this gets triggered if valid vote string
 async function registerVote(userstate: ChatUserstate, gameMsg: string) {
+  // get current vote range
+  const range = getDateRange();
 
   const user = await prisma.user.upsert({
     where: {
@@ -51,10 +53,22 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
       sub: userstate.subscriber || false,
     },
     update: {},
+    include:{
+      votes:{
+        take: 1,
+        where:{
+          createdAt: {
+            gte: range.currentPeriod.startDate,
+            lte: range.currentPeriod.endDate,
+          },
+        },
+        orderBy:{
+          createdAt: "desc"
+        }
+      }
+    }
   });
 
-  // check if user can vote
-  const range = getDateRange();
   // check if we are out of period atm
   const now = new TZDate(new Date(), 'America/New_York');
   
@@ -63,11 +77,13 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
     console.log(`[SUB] ${user.name} cannot vote out of range, game: ${gameMsg}`);
     return;
   }
-  const userCanVote = await canUserVote(user.id, range.currentPeriod);
-  if (!userCanVote) {
-    console.log(`[SUB] ${user.name} cannot vote, game: ${gameMsg}`);
-    return;
-  }
+  // https://github.com/fr0gtech/subsunday-back/issues/1
+  // a user vote should change if already votes no need to check if already voted
+  // const userCanVote = await canUserVote(user.id, range.currentPeriod);
+  // if (!userCanVote) {
+  //   console.log(`[SUB] ${user.name} cannot vote, game: ${gameMsg}`);
+  //   return;
+  // }
 
   // check if we got game on db with exact title match
   let gameOnDb = await getGameOnDb(gameMsg)
@@ -76,35 +92,51 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
   if (!gameOnDb) {
     // match game to a steam game
     const match = await findClosestSteamGame(gameMsg)
-    // overwriet gameondb if null with new game data
+    // overwrite gameondb if null with new game data
     gameOnDb = await createGameOnDb(match, gameMsg)
   }
 
   // at last we create the vote
-  await prisma.vote.create({
-    data: {
-      from: {
-        connect: {
-          id: user.id,
+  if(user.votes[0]){
+    await prisma.vote.update({
+      where:{
+        id: user.votes[0].id
+      },
+      data:{
+        for:{
+          connect:{
+            name: gameOnDb?.name || gameMsg,
+          }
+        }
+      }
+    })
+  }else{
+    await prisma.vote.create({
+      data: {
+        from: {
+          connect: {
+            id: user.id,
+          },
+        },
+        for: {
+          connect: {
+            name: gameOnDb?.name || gameMsg,
+          },
         },
       },
-      for: {
-        connect: {
-          name: gameOnDb?.name || gameMsg,
-        },
-      },
-    },
-  });
-  if (!gameOnDb) throw new Error("no game")
-  // also send ws messages to every room
-  io.to("main")
+    });
+    io.to("main")
     .emit("vote", {
       for: {
         name: gameOnDb?.name || gameMsg,
-        id: gameOnDb.id,
+        id: gameOnDb?.id,
       },
       from: { name: user.name, id: user.id },
     });
+  }
+  if (!gameOnDb) throw new Error("no game")
+  // also send ws messages to every room
+
 }
 
 // // FOR DEVING IGNORE THIS
