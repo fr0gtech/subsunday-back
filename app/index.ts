@@ -98,8 +98,6 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
   if (!gameOnDb) throw new Error("no game")
   // also send ws messages to every room
   io.to("main")
-    .to("game-" + gameOnDb.id)
-    .to("user-" + user.id)
     .emit("vote", {
       for: {
         name: gameOnDb?.name || gameMsg,
