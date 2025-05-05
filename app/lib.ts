@@ -39,11 +39,11 @@ export function getDateRange(options?: DateRangeOptions) {
   const toDay = (_toDay || process.env.TO_DAY) as Day;
   const toTime = (_toTime || process.env.TO_TIME) as string;
 
-  const now = new TZDate(offset || new Date(), 'America/New_York');
+  const now = new TZDate(offset || new Date(), process.env.TZ);
   const [fromHour, fromMinute] = fromTime.split(':').map(Number);
 
   const periodStart =
-    getDay(now) == fromDay ? now : previousDay(now, fromDay, { in: tz('America/New_York') });
+    getDay(now) == fromDay ? now : previousDay(now, fromDay, { in: tz(process.env.TZ as string) });
 
   const startDate = setMilliseconds(
     setSeconds(setMinutes(setHours(periodStart, fromHour), fromMinute), 0),
@@ -53,13 +53,13 @@ export function getDateRange(options?: DateRangeOptions) {
   const [toHour, toMinute] = toTime.split(':').map(Number);
 
   // relative from start we get the next day
-  const periodEndDate = nextDay(periodStart, toDay, { in: tz('America/New_York') });
+  const periodEndDate = nextDay(periodStart, toDay, { in: tz(process.env.TZ as string) });
   const endDate = setMilliseconds(
     setSeconds(setMinutes(setHours(periodEndDate, toHour), toMinute), 0),
     0,
   );
 
-  const nextStart = nextDay(periodEndDate, fromDay, { in: tz('America/New_York') });
+  const nextStart = nextDay(periodEndDate, fromDay, { in: tz(process.env.TZ as string) });
 
   const nextStartDate = setMilliseconds(
     setSeconds(setMinutes(setHours(nextStart, fromHour), fromMinute), 0),
@@ -102,6 +102,7 @@ export const createGameOnDb = async (match: { name: string; appId: number | null
         website: "",
         price: [""],
         categories: {},
+        createdAt: new TZDate(new Date(), process.env.TZ)
       },
       update: {},
     });
@@ -127,6 +128,7 @@ export const createGameOnDb = async (match: { name: string; appId: number | null
         dev: moreInfo.developers || [""],
         price: moreInfo.is_free ? {final: "free"} : moreInfo.price_overview || {final: "n/a"},
         categories: moreInfo.genres || {},
+        createdAt: new TZDate(new Date(), process.env.TZ)
       },
       update: {},
     });

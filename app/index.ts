@@ -1,12 +1,12 @@
 import "dotenv/config";
 import { prisma } from "./prisma";
-import { canUserVote, checkENV, createGameOnDb, delay, findClosestSteamGame, getDateRange, getGameOnDb, loadGames } from "./lib";
+import { checkENV, createGameOnDb, delay, findClosestSteamGame, getDateRange, getGameOnDb, loadGames } from "./lib";
 import { initSocket, io } from "./socket";
 import { initTwitchIRC } from "./twitch";
 import { ChatUserstate } from "tmi.js";
-import { demoMsg, seedGames, usernames } from "./data";
+import { demoMsg, seedGames } from "./data";
 import { TZDate } from "@date-fns/tz";
-import { isAfter, isBefore } from "date-fns";
+import { isAfter } from "date-fns";
 
 const CHANNEL = process.env.TWITCH_CHANNEL_NAME;
 
@@ -15,7 +15,7 @@ await init()
 
 async function init(){
    checkENV(CHANNEL as string)
-   loadGames()
+   await loadGames()
     // runDev()
    initSocket()
    initTwitchIRC(CHANNEL)
@@ -51,6 +51,7 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
       id: parseInt(userstate["user-id"]) || 0,
       name: userstate.username,
       sub: userstate.subscriber || false,
+      createdAt: new TZDate(new Date(), process.env.TZ)
     },
     update: {},
     include:{
@@ -70,7 +71,7 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
   });
 
   // check if we are out of period atm
-  const now = new TZDate(new Date(), 'America/New_York');
+  const now = new TZDate(new Date(), process.env.TZ);
   
   const isAfterEnd = isAfter(now, range.currentPeriod.endDate)
   if (isAfterEnd){
@@ -103,6 +104,7 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
         id: user.votes[0].id
       },
       data:{
+        updatedAt: new TZDate(new Date(), process.env.TZ),
         for:{
           connect:{
             name: gameOnDb?.name || gameMsg,
@@ -110,6 +112,16 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
         }
       }
     })
+
+    io.to("main")
+    .emit("voteUpdate", {
+      for: {
+        name: gameOnDb?.name || gameMsg,
+        id: gameOnDb?.id,
+      },
+      from: { name: user.name, id: user.id },
+    });
+
   }else{
     await prisma.vote.create({
       data: {
@@ -123,6 +135,7 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
             name: gameOnDb?.name || gameMsg,
           },
         },
+        createdAt: new TZDate(new Date(), process.env.TZ)
       },
     });
     io.to("main")
@@ -143,8 +156,8 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
 function runDev(){
   setInterval(async()=>{
     const randomId = demoMsg.sub.userstate
-    randomId["user-id"] = (Math.ceil(Math.random() * 10000)).toString()
-    randomId.username = usernames[Math.floor(Math.random() * usernames.length)];
+    // randomId["user-id"] = (Math.ceil(Math.random() * 10000)).toString()
+    // randomId.username = usernames[Math.floor(Math.random() * usernames.length)];
 
     await onMessage(`!vote ${seedGames[Math.floor(Math.random() * seedGames.length)]}`, randomId)
     await delay(300);
