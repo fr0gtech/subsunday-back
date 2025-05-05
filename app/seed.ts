@@ -1,55 +1,11 @@
 import { onMessage } from ".";
-import { usernames } from "./data";
+import { seedGames, usernames } from "./data";
 import { delay } from "./lib";
-
-const games = [
-  "World of Goo 2",
-  "Hades II",
-  "Hollow Knight: Silksong",
-  "Starfield",
-  "The Legend of Zelda: Tears of the Kingdom",
-  "Elden Ring",
-  "Baldur's Gate 3",
-  "Sea of Stars",
-  "Dave the Diver",
-  "Cyberpunk 2077",
-  "The Witcher 3",
-  "Fortnite",
-  "League of Legends",
-  "Minecraft",
-  "Apex Legends",
-  "Valorant",
-  "Overwatch 2",
-  "Super Mario Bros Wonder",
-  "Resident Evil 4 Remake",
-  "Final Fantasy XVI",
-  "Persona 5 Royal",
-  "Monster Hunter Rise",
-  "Among Us",
-  "Stardew Valley",
-  "Dead Cells",
-  "Cult of the Lamb",
-  "Risk of Rain 2",
-  "Slay the Spire",
-  "Ghost of Tsushima",
-  "God of War Ragnarok",
-  "Spider-Man 2",
-  "Lies of P",
-  "Armored Core VI",
-  "F-Zero 99",
-  "Sonic Superstars",
-  "Metroid Dread",
-  "Cuphead",
-  "Inside",
-  "Celeste",
-  "It Takes Two",
-];
-
 
 // add data while running
 
 export function generateRandomRewardMsg() {
-  const randomGame = games[Math.floor(Math.random() * games.length)];
+  const randomGame = seedGames[Math.floor(Math.random() * seedGames.length)];
   const randomUser = usernames[Math.floor(Math.random() * usernames.length)];
   const randomColor = `#${Math.floor(Math.random() * 16777215)
     .toString(16)

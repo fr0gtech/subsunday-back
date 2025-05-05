@@ -1,10 +1,10 @@
 import "dotenv/config";
 import { prisma } from "./prisma";
-import { canUserVote, checkENV, createGameOnDb, delay, findClosestSteamGame, getDateRange, getGameOnDb, getSteamGames, loadGames, SteamGame } from "./lib";
+import { canUserVote, checkENV, createGameOnDb, delay, findClosestSteamGame, getDateRange, getGameOnDb, loadGames } from "./lib";
 import { initSocket, io } from "./socket";
 import { initTwitchIRC } from "./twitch";
 import { ChatUserstate } from "tmi.js";
-import { demoMsg, usernames } from "./data";
+import { demoMsg, seedGames, usernames } from "./data";
 import { TZDate } from "@date-fns/tz";
 import { isAfter, isBefore } from "date-fns";
 
@@ -116,7 +116,7 @@ function runDev(){
     randomId["user-id"] = (Math.ceil(Math.random() * 10000)).toString()
     randomId.username = usernames[Math.floor(Math.random() * usernames.length)];
 
-    await onMessage("!vote Throne of Darkness", randomId)
+    await onMessage(`!vote ${seedGames[Math.floor(Math.random() * seedGames.length)]}`, randomId)
     await delay(300);
   }, 5000)
 }
