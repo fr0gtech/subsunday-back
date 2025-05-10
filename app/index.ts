@@ -1,12 +1,12 @@
 import "dotenv/config";
 import { prisma } from "./prisma";
-import { checkENV, createGameOnDb, delay, findClosestSteamGame, getDateRange, getGameOnDb, getSteamAppIdFromURL, loadGames } from "./lib";
+import { checkENV, createGameOnDb, delay, findClosestSteamGame, getDateRange, getGameOnDb, getSteamAppIdFromURL, loadGames, updateGame } from "./lib";
 import { initSocket, io } from "./socket";
 import { initTwitchIRC } from "./twitch";
 import { ChatUserstate } from "tmi.js";
 import { demoMsg, usernames } from "./data";
 import { TZDate } from "@date-fns/tz";
-import { isAfter } from "date-fns";
+import { isAfter, isBefore, subDays } from "date-fns";
 
 const CHANNEL = process.env.TWITCH_CHANNEL_NAME;
 
@@ -16,7 +16,7 @@ await init()
 async function init(){
    checkENV(CHANNEL as string)
    await loadGames()
-    // runDev()
+    runDev()
    initSocket()
    initTwitchIRC(CHANNEL)
 }
@@ -92,6 +92,15 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
 
   // check if we got game on db with exact title match
   let gameOnDb = await getGameOnDb(gameMsg, idFromLink)
+
+  // if we got game check when it last was updated
+  console.log(gameOnDb);
+  
+  // if game is older than x we update its contents
+  if (isBefore(gameOnDb?.updatedAt as Date, subDays(new Date(), 5))){
+    // update game on db data
+    await updateGame(gameOnDb)
+  }
 
   // if we don't already have game do matching
   if (!gameOnDb) {

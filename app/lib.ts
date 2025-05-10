@@ -13,6 +13,7 @@ import { parse } from "node-html-parser";
 import Fuse from 'fuse.js'
 import { prisma } from "./prisma";
 import { TZDate, tz } from "@date-fns/tz";
+import { Game } from "../generated/prisma";
 
 export type SteamGame = {
   appid: number;
@@ -84,6 +85,30 @@ export const getGameOnDb = async(gameMsg: string, steamId: string) =>{
   return await prisma.game.findFirst({
     where: steamId ? { steamId: parseInt(steamId) } :  { name: gameMsg }
   })
+}
+export const updateGame = async (gameOnDb: Game | null) => {
+  if (!gameOnDb) return
+  // we got a game on db but need to update it with steam info if we got any new ones
+  const steamAppDetails = await getInfobyId(gameOnDb.steamId)
+  const moreInfo = steamAppDetails[gameOnDb.steamId].data;
+  if (steamAppDetails){
+    await prisma.game.update({
+      where:{
+        name: gameOnDb.name
+      },
+      data:{
+        name: moreInfo.name,
+        picture: moreInfo.header_image || "",
+        link: "",
+        steamId: gameOnDb.steamId,
+        description: moreInfo.short_description || "",
+        website: moreInfo.website || "",
+        dev: moreInfo.developers || [""],
+        price: moreInfo.is_free ? {final: "free"} : moreInfo.price_overview || {final: "n/a"},
+        categories: moreInfo.genres || {},
+      }
+    })
+  }
 }
 export const createGameOnDb = async (match: { name: string; appId: number | null; }, gameMsg: string) =>{
   if (!match.appId) {
