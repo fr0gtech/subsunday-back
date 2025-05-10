@@ -87,10 +87,20 @@ export const getGameOnDb = async(gameMsg: string, steamId: string) =>{
   })
 }
 export const updateGame = async (gameOnDb: Game | null) => {
+  
   if (!gameOnDb) return
+  let steamId = gameOnDb.steamId
+  if (gameOnDb.steamId <= 0){
+    const closesSteam = await findClosestSteamGame(gameOnDb.name)
+    if (closesSteam.appId) {
+      steamId = closesSteam.appId
+    }else{
+      return;
+    }
+  }
   // we got a game on db but need to update it with steam info if we got any new ones
-  const steamAppDetails = await getInfobyId(gameOnDb.steamId)
-  const moreInfo = steamAppDetails[gameOnDb.steamId].data;
+  const steamAppDetails = await getInfobyId(steamId)
+  const moreInfo = steamAppDetails[steamId].data;
   if (steamAppDetails){
     await prisma.game.update({
       where:{
@@ -100,7 +110,7 @@ export const updateGame = async (gameOnDb: Game | null) => {
         name: moreInfo.name,
         picture: moreInfo.header_image || "",
         link: "",
-        steamId: gameOnDb.steamId,
+        steamId: steamId,
         description: moreInfo.short_description || "",
         website: moreInfo.website || "",
         dev: moreInfo.developers || [""],

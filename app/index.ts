@@ -94,7 +94,6 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
   let gameOnDb = await getGameOnDb(gameMsg, idFromLink)
 
   // if we got game check when it last was updated
-  console.log(gameOnDb);
   
   // if game is older than x we update its contents
   if (isBefore(gameOnDb?.updatedAt as Date, subDays(new Date(), 5))){
