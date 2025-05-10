@@ -98,6 +98,8 @@ export const updateGame = async (gameOnDb: Game | null) => {
       return;
     }
   }
+
+  if (!steamId) return
   console.log("update game", steamId);
     
   // we got a game on db but need to update it with steam info if we got any new ones
