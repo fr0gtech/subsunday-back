@@ -46,7 +46,7 @@ const checkStreak = async (
   const after = isAfter(new Date(user.votes[0].createdAt), new Date(range.lastPeriod.endDate))
 
 
-  if (before || after) {
+  if (before) {
     
     // means vote WAS NOT in range
     await prisma.user.update({
