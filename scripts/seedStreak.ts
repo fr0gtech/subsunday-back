@@ -8,10 +8,10 @@
  * 
  */
 
-import { addDays, subDays } from "date-fns";
-import { getDateRange } from "./app/lib";
-import { prisma } from "./app/prisma";
-
+import { addDays, subDays, subWeeks } from "date-fns";
+import { getDateRange } from "../app/lib";
+import { prisma } from "../app/prisma";
+import { TZDate } from "@date-fns/tz";
 const toCreate = {
     invalid: ['invalid1', "invalid2"],
     incrementing: {
@@ -52,6 +52,37 @@ const seedStreak = async() =>{
 
         }
     })
+
+    // we want to create some votes that should create a 0 streak for testing
+    toCreate.invalid.forEach(async (e, i) => {
+        const username = "invalid - " + (i + 1)
+
+        const user = await prisma.user.create({
+            data:{
+                id: Math.ceil(Math.random() * 1000),
+                name: username,
+                sub: false,
+            }
+        })
+        await prisma.user.update({
+            where:{
+                id: user.id
+            },
+            data:{
+                votes:{
+                    create: {
+                        for:{
+                            connect:{
+                                id: 0
+                            }
+                        },
+                        createdAt: subWeeks(new TZDate(new Date(), 'America/New_York'), 1) ,
+                    }
+                }
+            }
+        })
+    })
+
     const ranges = getDatesInRanges(10)
     // we need to get some dates to create the dummy votes
     // we need up to 10 dateRanges back
@@ -73,7 +104,7 @@ const seedStreak = async() =>{
         }})
         const user = await prisma.user.create({
             data:{
-                id: Math.ceil(Math.random() * 100),
+                id: Math.ceil(Math.random() * 1000),
                 name: username,
                 sub: false,
             }
