@@ -1,10 +1,10 @@
 import "dotenv/config";
 import { prisma } from "./prisma";
-import { checkENV, createGameOnDb, delay, findClosestSteamGame, getDateRange, getGameOnDb, loadGames } from "./lib";
+import { checkENV, createGameOnDb, delay, findClosestSteamGame, getDateRange, getGameOnDb, getSteamAppIdFromURL, loadGames } from "./lib";
 import { initSocket, io } from "./socket";
 import { initTwitchIRC } from "./twitch";
 import { ChatUserstate } from "tmi.js";
-import { demoMsg, seedGames } from "./data";
+import { demoMsg, usernames } from "./data";
 import { TZDate } from "@date-fns/tz";
 import { isAfter } from "date-fns";
 
@@ -42,7 +42,6 @@ export async function onMessage(message: string, userstate: ChatUserstate) {
 async function registerVote(userstate: ChatUserstate, gameMsg: string) {
   // get current vote range
   const range = getDateRange();
-
   const user = await prisma.user.upsert({
     where: {
       id: parseInt(userstate["user-id"]) || 0,
@@ -86,13 +85,18 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
   //   return;
   // }
 
+  // parse vote if not just game name
+    // some vote with a steam link so maybe support that?
+    // not sure what else should be supported
+  let idFromLink = getSteamAppIdFromURL(gameMsg)
+
   // check if we got game on db with exact title match
-  let gameOnDb = await getGameOnDb(gameMsg)
+  let gameOnDb = await getGameOnDb(gameMsg, idFromLink)
 
   // if we don't already have game do matching
   if (!gameOnDb) {
     // match game to a steam game
-    const match = await findClosestSteamGame(gameMsg)
+    const match = idFromLink ? { name: "", appId: parseInt(idFromLink)} : await findClosestSteamGame(gameMsg)
     // overwrite gameondb if null with new game data
     gameOnDb = await createGameOnDb(match, gameMsg)
   }
@@ -161,10 +165,10 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
 function runDev(){
   setInterval(async()=>{
     const randomId = demoMsg.sub.userstate
-    // randomId["user-id"] = (Math.ceil(Math.random() * 10000)).toString()
-    // randomId.username = usernames[Math.floor(Math.random() * usernames.length)];
+    randomId["user-id"] = (Math.ceil(Math.random() * 10000)).toString()
+    randomId.username = usernames[Math.floor(Math.random() * usernames.length)];
 
-    await onMessage(`!vote ${seedGames[Math.floor(Math.random() * seedGames.length)]}`, randomId)
+    await onMessage(`!vote https://store.steampowered.com/app/578080/PUBG_BATTLEGROUNDS/`, randomId)
     await delay(300);
   }, 5000)
 }

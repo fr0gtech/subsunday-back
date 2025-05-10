@@ -80,11 +80,9 @@ export function getDateRange(options?: DateRangeOptions) {
     },
   };
 }
-export const getGameOnDb = async(gameMsg) =>{
+export const getGameOnDb = async(gameMsg: string, steamId: string) =>{
   return await prisma.game.findFirst({
-    where:{
-      name: gameMsg
-    }
+    where: steamId ? { steamId: parseInt(steamId) } :  { name: gameMsg }
   })
 }
 export const createGameOnDb = async (match: { name: string; appId: number | null; }, gameMsg: string) =>{
@@ -136,7 +134,11 @@ export const createGameOnDb = async (match: { name: string; appId: number | null
 }
 
 
-
+export function getSteamAppIdFromURL(url) {
+  const regex = /^https?:\/\/store\.steampowered\.com\/app\/(\d+)(?:\/|$)/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+}
 export async function canUserVote(id: number, range: { startDate: any; endDate: any; }){
    const userCanVote = await prisma.user.findFirst({
       where: {
