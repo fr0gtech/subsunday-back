@@ -76,7 +76,7 @@ const seedStreak = async() =>{
                                 id: 0
                             }
                         },
-                        createdAt: subWeeks(new TZDate(new Date(), 'America/New_York'), 1) ,
+                        createdAt: new TZDate(new Date(), 'America/New_York'),
                     }
                 }
             }

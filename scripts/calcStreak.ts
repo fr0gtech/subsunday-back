@@ -1,4 +1,4 @@
-import { isAfter, isBefore, subDays } from "date-fns";
+import { isBefore, subDays } from "date-fns";
 import { prisma } from "../app/prisma";
 import { User, Vote } from "../generated/prisma";
 import { getDateRange } from "../app/lib";
@@ -34,21 +34,8 @@ const checkStreak = async (
   user: User & { votes: Vote[] },
   range:{ currentPeriod: { startDate: Date; endDate: Date }, lastPeriod: {startDate: Date, endDate: Date} },
 ) => {
-
-
-  // to check streak for each user we first need to know to where we are checking (lastperiod normally)
-  // if the user did not vote in the last period we can just reset streak all together
-
-  // console.log(`checking if vote from ${user.votes[0].createdAt} is between ${range.lastPeriod.startDate} - ${range.lastPeriod.endDate}`);
-  
-  // if vote is after start and before end its in range
   const before = isBefore(new Date(user.votes[0].createdAt), new Date(range.lastPeriod.startDate));
-  const after = isAfter(new Date(user.votes[0].createdAt), new Date(range.lastPeriod.endDate))
-
-
   if (before) {
-    
-    // means vote WAS NOT in range
     await prisma.user.update({
       where: {
         id: user.id,
@@ -59,14 +46,12 @@ const checkStreak = async (
     });
     console.log(`[STREAK] Resetting streak for ${user.name}`);
   }else{
-    // vote WAS last period
-    // now loop over each later vote and check if it is in range to last to increment streak
-    let lastVotePeriodStart = range.currentPeriod.startDate
-    // we got last start day so to figure out if we go back more to check streaks we need to get a new Start Period
+
+    let lastVotePeriodStart = range.currentPeriod.endDate
     let newVotePeriodStart = getDateRange({offset: subDays(lastVotePeriodStart, 1)}) // passing last vote period should give us the one before back?
-    
     let streak = 0
     let run = true
+    let firstRun = true
     while (run){
       const gotVote = await prisma.vote.findFirst({
         where:{
@@ -80,13 +65,18 @@ const checkStreak = async (
         },
       })
       if (gotVote){
-        newVotePeriodStart = getDateRange({offset: subDays(lastVotePeriodStart, 1)})
+        console.log(`user ${user.name} got a vote(${gotVote.id}) for this period`);
         lastVotePeriodStart = newVotePeriodStart.currentPeriod.startDate
+        newVotePeriodStart = getDateRange({offset: subDays(lastVotePeriodStart, 1)})
         streak++
+      }else if (firstRun && lastVotePeriodStart === range.currentPeriod.endDate){    
+        console.log(lastVotePeriodStart, range.currentPeriod.endDate);
+        firstRun = false
+        lastVotePeriodStart = newVotePeriodStart.currentPeriod.startDate
+        newVotePeriodStart = getDateRange({offset: subDays(lastVotePeriodStart, 1)})
       }else{
         run = false
       }
-      // we check if there is a vote for last period
     }
     await prisma.user.update({
       where:{
@@ -96,8 +86,6 @@ const checkStreak = async (
         streak: streak
       }
     })
-    // console.log("updateStreak",updateStreak);
-    
   }
 };
 
