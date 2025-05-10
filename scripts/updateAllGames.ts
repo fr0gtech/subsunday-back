@@ -10,6 +10,7 @@ export const updateGames = async () =>{
             name: true
         }
     })
+    console.log("loaded " + allGames.length + " games");
     
     allGames.forEach(async (e : any)=>{
         console.log("updating game " + e.name);
