@@ -16,7 +16,7 @@ await init()
 async function init(){
    checkENV(CHANNEL as string)
    await loadGames()
-    runDev()
+    // runDev()
    initSocket()
    initTwitchIRC(CHANNEL)
 }
