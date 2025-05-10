@@ -8,13 +8,15 @@ export const updateGames = async () =>{
         select:{
             steamId: true,
             name: true
+        },
+        orderBy:{
+            name: "asc"
         }
     })
     console.log("loaded " + allGames.length + " games");
     
-    allGames.forEach(async (e : any)=>{
-        console.log("updating game " + e.name);
-        
+    allGames.forEach(async (e : any, i: number)=>{
+        console.log("updating game" + " " + i + " " + e.name);
         await updateGame(e)
     })
 

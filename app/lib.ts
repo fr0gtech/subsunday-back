@@ -83,7 +83,7 @@ export function getDateRange(options?: DateRangeOptions) {
 }
 export const getGameOnDb = async(gameMsg: string, steamId: string) =>{
   return await prisma.game.findFirst({
-    where: steamId ? { steamId: parseInt(steamId) } :  { name: gameMsg }
+    where: steamId ? { steamId: parseInt(steamId) } :  { name: { contains: gameMsg, mode: 'insensitive'} }
   })
 }
 export const updateGame = async (gameOnDb: Game | null) => {
