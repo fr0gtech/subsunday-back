@@ -123,21 +123,26 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
     });
 
   }else{
-    await prisma.vote.create({
-      data: {
-        from: {
-          connect: {
-            id: user.id,
-          },
-        },
-        for: {
-          connect: {
-            name: gameOnDb?.name || gameMsg,
-          },
-        },
-        createdAt: new TZDate(new Date(), process.env.TZ)
+    // update user to have vote so we are able to increment streak here
+    await prisma.user.update({
+      where:{
+        id: user.id
       },
-    });
+      data:{
+        streak: {increment: 1},
+        votes:{
+          create:{
+            for:{
+              connect:{
+                name: gameOnDb?.name
+              }
+            },
+            createdAt: new TZDate(new Date(), process.env.TZ),
+          }
+        }
+      }
+    })
+   
     io.to("main")
     .emit("vote", {
       for: {

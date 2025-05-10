@@ -3,7 +3,9 @@ import { prisma } from "./app/prisma";
 import { User, Vote } from "./generated/prisma";
 import { getDateRange } from "./app/lib";
 
-// this runs after a period is over to reset everyones streak
+// This is a migration script becuase we are changing how streaks work
+// we run this before deploying new streak logic
+// this will update each users current streak
 const calcStreak = async () => {
   const range = getDateRange();
 
