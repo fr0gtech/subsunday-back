@@ -44,11 +44,11 @@ const checkStreak = async (
         streak: 0,
       },
     });
-    console.log(`[STREAK] Resetting streak for ${user.name}`);
+    // console.log(`[STREAK] Resetting streak for ${user.name}`);
   }else{
 
     let lastVotePeriodStart = range.currentPeriod.endDate
-    let newVotePeriodStart = getDateRange({offset: subDays(lastVotePeriodStart, 1)}) // passing last vote period should give us the one before back?
+    let newVotePeriodStart = getDateRange({offset: subDays(lastVotePeriodStart, 1)})
     let streak = 0
     let run = true
     let firstRun = true
@@ -65,12 +65,11 @@ const checkStreak = async (
         },
       })
       if (gotVote){
-        console.log(`user ${user.name} got a vote(${gotVote.id}) for this period`);
+        // console.log(`user ${user.name} got a vote(${gotVote.id}) for this period`);
         lastVotePeriodStart = newVotePeriodStart.currentPeriod.startDate
         newVotePeriodStart = getDateRange({offset: subDays(lastVotePeriodStart, 1)})
         streak++
       }else if (firstRun && lastVotePeriodStart === range.currentPeriod.endDate){    
-        console.log(lastVotePeriodStart, range.currentPeriod.endDate);
         firstRun = false
         lastVotePeriodStart = newVotePeriodStart.currentPeriod.startDate
         newVotePeriodStart = getDateRange({offset: subDays(lastVotePeriodStart, 1)})
