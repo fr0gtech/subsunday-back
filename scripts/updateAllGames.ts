@@ -12,6 +12,8 @@ export const updateGames = async () =>{
     })
     
     allGames.forEach(async (e : any)=>{
+        console.log("updating game " + e.name);
+        
         await updateGame(e)
     })
 
