@@ -9,7 +9,8 @@ export const updateGames = async () =>{
             steamId: 0
         },
         select:{
-            name: true
+            name: true,
+            steamId: true
         },
         orderBy:{
             name: "asc"
