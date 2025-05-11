@@ -120,6 +120,11 @@ export const updateGame = async (gameOnDb: Game | null) => {
         dev: moreInfo.developers || [""],
         price: moreInfo.is_free ? {final: "free"} : moreInfo.price_overview || {final: "n/a"},
         categories: moreInfo.genres || {},
+        recommendations: moreInfo.recommendations ? moreInfo.recommendations.total : 0,
+        screenshots: moreInfo.screenshots,
+        detailedDescription: JSON.stringify({html: moreInfo.detailed_description}),
+        movies: moreInfo.movies,
+        createdAt: new TZDate(new Date(), process.env.TZ)
       }
     })
   }
@@ -165,6 +170,10 @@ export const createGameOnDb = async (match: { name: string; appId: number | null
         dev: moreInfo.developers || [""],
         price: moreInfo.is_free ? {final: "free"} : moreInfo.price_overview || {final: "n/a"},
         categories: moreInfo.genres || {},
+        recommendations: moreInfo.recommendations ? moreInfo.recommendations.total : 0,
+        screenshots: moreInfo.screenshots,
+        detailedDescription: JSON.stringify({html: moreInfo.detailed_description}),
+        movies: moreInfo.movies,
         createdAt: new TZDate(new Date(), process.env.TZ)
       },
       update: {},

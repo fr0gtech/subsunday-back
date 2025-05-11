@@ -9,21 +9,23 @@ datasource db {
 }
 
 model Game {
-  id          Int      @id @default(autoincrement())
-  steamId     Int      @default(0)
-  name        String   @unique
-  picture     String   @default("")
-  link        String   @default("")
-  description String   @default("")
-  website     String   @default("")
-  dev         String[] @default([""])
-  price       Json     @default("{ \"final\": \"n/a\" }")
-  categories  Json     @default("{}")
-
-  votes Vote[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                  Int      @id @default(autoincrement())
+  steamId             Int      @default(0)
+  name                String   @unique
+  picture             String   @default("")
+  link                String   @default("")
+  description         String   @default("")
+  website             String   @default("")
+  dev                 String[] @default([""])
+  price               Json     @default("{ \"final\": \"n/a\" }")
+  categories          Json     @default("{}")
+  recommendations     Int      @default(0)
+  screenshots         Json     @default("{}")
+  detailedDescription Json     @default("{}")
+  votes               Vote[]
+  movies              Json     @default("{}")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
 model Vote {
