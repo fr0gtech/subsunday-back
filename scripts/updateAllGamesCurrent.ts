@@ -1,15 +1,19 @@
-import { loadGames, updateGame } from "../app/lib";
+import { getDateRange, loadGames, updateGame } from "../app/lib";
 import { prisma } from "../app/prisma"
 
 export const updateGames = async () =>{
+    const range = getDateRange()
     await loadGames()
     const allGames = await prisma.game.findMany({
         where:{
-            steamId: 0
+            createdAt:{
+                gte: range.currentPeriod.startDate,
+                lte: range.currentPeriod.endDate
+            }
         },
         select:{
-            name: true,
-            steamId: true
+            steamId: true,
+            name: true
         },
         orderBy:{
             name: "asc"

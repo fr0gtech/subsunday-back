@@ -1,6 +1,5 @@
 import { loadGames, updateGame } from "../app/lib";
 import { prisma } from "../app/prisma"
-import { Game } from "../generated/prisma";
 
 export const updateGames = async () =>{
     await loadGames()
