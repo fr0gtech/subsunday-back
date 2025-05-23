@@ -82,9 +82,21 @@ export function getDateRange(options?: DateRangeOptions) {
   };
 }
 export const getGameOnDb = async(gameMsg: string, steamId: string) =>{
-  return await prisma.game.findFirst({
-    where: steamId ? { steamId: parseInt(steamId) } :  { name: { contains: gameMsg, mode: 'insensitive'} }
-  })
+  if (steamId){
+    return await prisma.game.findFirst({
+      where: steamId ? { steamId: parseInt(steamId) } :  { name: { contains: gameMsg, mode: 'insensitive'} }
+    })
+  }
+  if (!steamId){
+    return await prisma.game.findMany({
+      where:{
+        name : { contains: gameMsg, mode: 'insensitive' }
+      },
+      orderBy:{
+        steamId: "asc"
+      }
+    }).then((e)=>e[0])
+  }
 }
 export const updateGame = async (gameOnDb: Game | null) => {
   

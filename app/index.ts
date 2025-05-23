@@ -96,7 +96,7 @@ async function registerVote(userstate: ChatUserstate, gameMsg: string) {
   // if we got game check when it last was updated
   
   // if game is older than x we update its contents
-  if (isBefore(gameOnDb?.updatedAt as Date, subDays(new Date(), 1))){
+  if (isBefore(gameOnDb?.updatedAt as Date, subDays(new Date(), 1)) && gameOnDb){
     // update game on db data
     await updateGame(gameOnDb)
   }
