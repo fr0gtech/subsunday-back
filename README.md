@@ -1,4 +1,5 @@
 # Sub Sunday Backend
+This was replaced with [fr0gtech/subsunday-back-drizzle](https://github.com/fr0gtech/subsunday-back-drizzle)
 
 This is the backend of [sub-sunday.com](https://sub-sunday.com/) written in Bun.js. This reads chat via IRC and saves votes. It includes the [socket.io](http://socket.io) logic for realtime updates. `streak.ts` is ran from crontab every sunday at 23:59 to check for streaks.
 
